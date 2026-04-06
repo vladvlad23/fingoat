@@ -11,17 +11,16 @@ import (
 	"github.com/fingoat/api/internal/model"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TransactionHandler struct {
-	queries *db.Queries
-	pool    *pgxpool.Pool
-	config  *config.Config
+	store  Store
+	pool   TxBeginner
+	config *config.Config
 }
 
-func NewTransactionHandler(q *db.Queries, pool *pgxpool.Pool, cfg *config.Config) *TransactionHandler {
-	return &TransactionHandler{queries: q, pool: pool, config: cfg}
+func NewTransactionHandler(q Store, pool TxBeginner, cfg *config.Config) *TransactionHandler {
+	return &TransactionHandler{store: q, pool: pool, config: cfg}
 }
 
 type createTransactionRequest struct {
@@ -83,7 +82,7 @@ func (h *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Req
 			params.To = &d
 		}
 	}
-	txs, err := h.queries.ListTransactions(r.Context(), params)
+	txs, err := h.store.ListTransactions(r.Context(), params)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to fetch transactions")
 		return
@@ -129,7 +128,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		}
 		defer pgTx.Rollback(r.Context())
 
-		qtx := h.queries.WithTx(pgTx)
+		qtx := h.store.WithTx(pgTx)
 		// Verify goal ownership
 		goal, err := qtx.GetGoalByID(r.Context(), *req.GoalID)
 		if err != nil || goal.UserID != userID {
@@ -161,7 +160,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	t, err := h.queries.CreateTransaction(r.Context(), db.CreateTransactionParams{
+	t, err := h.store.CreateTransaction(r.Context(), db.CreateTransactionParams{
 		UserID:   userID,
 		GoalID:   nil,
 		Title:    req.Title,
@@ -188,7 +187,7 @@ func (h *TransactionHandler) GetTransaction(w http.ResponseWriter, r *http.Reque
 		writeError(w, http.StatusBadRequest, "invalid transaction id")
 		return
 	}
-	t, err := h.queries.GetTransactionByID(r.Context(), id)
+	t, err := h.store.GetTransactionByID(r.Context(), id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "transaction not found")
 		return
@@ -211,7 +210,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		writeError(w, http.StatusBadRequest, "invalid transaction id")
 		return
 	}
-	existing, err := h.queries.GetTransactionByID(r.Context(), id)
+	existing, err := h.store.GetTransactionByID(r.Context(), id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "transaction not found")
 		return
@@ -253,7 +252,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 			return
 		}
 		defer pgTx.Rollback(r.Context())
-		qtx := h.queries.WithTx(pgTx)
+		qtx := h.store.WithTx(pgTx)
 
 		// Reverse old goal delta
 		if oldGoalID != nil {
@@ -291,7 +290,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	t, err := h.queries.UpdateTransaction(r.Context(), db.UpdateTransactionParams{
+	t, err := h.store.UpdateTransaction(r.Context(), db.UpdateTransactionParams{
 		ID: id, Title: title, Amount: newAmount, Type: txType,
 		Category: req.Category, Date: newDate, GoalID: newGoalID,
 	})
@@ -313,7 +312,7 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 		writeError(w, http.StatusBadRequest, "invalid transaction id")
 		return
 	}
-	existing, err := h.queries.GetTransactionByID(r.Context(), id)
+	existing, err := h.store.GetTransactionByID(r.Context(), id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "transaction not found")
 		return
@@ -329,7 +328,7 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 			return
 		}
 		defer pgTx.Rollback(r.Context())
-		qtx := h.queries.WithTx(pgTx)
+		qtx := h.store.WithTx(pgTx)
 		negAmount := negateNumeric(existing.Amount)
 		if _, err := qtx.UpdateGoalCurrentAmount(r.Context(), *existing.GoalID, negAmount); err != nil {
 			writeError(w, http.StatusInternalServerError, "failed to update goal amount")
@@ -346,7 +345,7 @@ func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Re
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	if err := h.queries.DeleteTransaction(r.Context(), id); err != nil {
+	if err := h.store.DeleteTransaction(r.Context(), id); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to delete transaction")
 		return
 	}

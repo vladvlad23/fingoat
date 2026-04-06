@@ -41,12 +41,12 @@ func main() {
 		log.Fatalf("migrate up: %v", err)
 	}
 
-	queries := db.New(pool)
+	store := &handler.QueriesStore{Queries: db.New(pool)}
 
-	authH := handler.NewAuthHandler(queries, cfg)
-	userH := handler.NewUserHandler(queries, cfg)
-	goalH := handler.NewGoalHandler(queries, cfg)
-	txH := handler.NewTransactionHandler(queries, pool, cfg)
+	authH := handler.NewAuthHandler(store, cfg)
+	userH := handler.NewUserHandler(store, cfg)
+	goalH := handler.NewGoalHandler(store, cfg)
+	txH := handler.NewTransactionHandler(store, pool, cfg)
 
 	r := chi.NewRouter()
 	r.Use(chimw.Recoverer)

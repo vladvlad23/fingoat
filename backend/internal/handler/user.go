@@ -11,12 +11,12 @@ import (
 )
 
 type UserHandler struct {
-	queries *db.Queries
-	config  *config.Config
+	store  Store
+	config *config.Config
 }
 
-func NewUserHandler(q *db.Queries, cfg *config.Config) *UserHandler {
-	return &UserHandler{queries: q, config: cfg}
+func NewUserHandler(q Store, cfg *config.Config) *UserHandler {
+	return &UserHandler{store: q, config: cfg}
 }
 
 func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	user, err := h.queries.GetUserByID(r.Context(), userID)
+	user, err := h.store.GetUserByID(r.Context(), userID)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "user not found")
 		return
@@ -64,7 +64,7 @@ func (h *UserHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	user, err := h.queries.UpdateUserSettings(r.Context(), db.UpdateUserSettingsParams{
+	user, err := h.store.UpdateUserSettings(r.Context(), db.UpdateUserSettingsParams{
 		ID:            userID,
 		MonthlyIncome: income,
 		PaymentDay:    req.PaymentDay,

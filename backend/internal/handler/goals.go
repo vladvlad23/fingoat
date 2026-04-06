@@ -12,12 +12,12 @@ import (
 )
 
 type GoalHandler struct {
-	queries *db.Queries
-	config  *config.Config
+	store  Store
+	config *config.Config
 }
 
-func NewGoalHandler(q *db.Queries, cfg *config.Config) *GoalHandler {
-	return &GoalHandler{queries: q, config: cfg}
+func NewGoalHandler(q Store, cfg *config.Config) *GoalHandler {
+	return &GoalHandler{store: q, config: cfg}
 }
 
 type createGoalRequest struct {
@@ -39,7 +39,7 @@ func (h *GoalHandler) ListGoals(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	goals, err := h.queries.ListGoalsByUser(r.Context(), userID)
+	goals, err := h.store.ListGoalsByUser(r.Context(), userID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to fetch goals")
 		return
@@ -80,7 +80,7 @@ func (h *GoalHandler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 		}
 		deadline = &d
 	}
-	goal, err := h.queries.CreateGoal(r.Context(), db.CreateGoalParams{
+	goal, err := h.store.CreateGoal(r.Context(), db.CreateGoalParams{
 		UserID:       userID,
 		Title:        req.Title,
 		TargetAmount: target,
@@ -104,7 +104,7 @@ func (h *GoalHandler) GetGoal(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	goal, err := h.queries.GetGoalByID(r.Context(), id)
+	goal, err := h.store.GetGoalByID(r.Context(), id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "goal not found")
 		return
@@ -127,7 +127,7 @@ func (h *GoalHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	existing, err := h.queries.GetGoalByID(r.Context(), id)
+	existing, err := h.store.GetGoalByID(r.Context(), id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "goal not found")
 		return
@@ -163,7 +163,7 @@ func (h *GoalHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 	} else {
 		deadline = existing.Deadline
 	}
-	goal, err := h.queries.UpdateGoal(r.Context(), db.UpdateGoalParams{
+	goal, err := h.store.UpdateGoal(r.Context(), db.UpdateGoalParams{
 		ID:           id,
 		Title:        req.Title,
 		TargetAmount: target,
@@ -188,7 +188,7 @@ func (h *GoalHandler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	existing, err := h.queries.GetGoalByID(r.Context(), id)
+	existing, err := h.store.GetGoalByID(r.Context(), id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, "goal not found")
 		return
@@ -197,7 +197,7 @@ func (h *GoalHandler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusForbidden, "forbidden")
 		return
 	}
-	if err := h.queries.DeleteGoal(r.Context(), id); err != nil {
+	if err := h.store.DeleteGoal(r.Context(), id); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to delete goal")
 		return
 	}

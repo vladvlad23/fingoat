@@ -26,12 +26,12 @@ func classifyCreateUserErr(err error) error {
 }
 
 type AuthHandler struct {
-	queries *db.Queries
-	config  *config.Config
+	store  Store
+	config *config.Config
 }
 
-func NewAuthHandler(q *db.Queries, cfg *config.Config) *AuthHandler {
-	return &AuthHandler{queries: q, config: cfg}
+func NewAuthHandler(q Store, cfg *config.Config) *AuthHandler {
+	return &AuthHandler{store: q, config: cfg}
 }
 
 type registerRequest struct {
@@ -58,7 +58,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to hash password")
 		return
 	}
-	user, err := h.queries.CreateUser(r.Context(), db.CreateUserParams{
+	user, err := h.store.CreateUser(r.Context(), db.CreateUserParams{
 		Email:        req.Email,
 		PasswordHash: hash,
 	})
@@ -86,7 +86,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	user, err := h.queries.GetUserByEmail(r.Context(), req.Email)
+	user, err := h.store.GetUserByEmail(r.Context(), req.Email)
 	if err != nil {
 		writeError(w, http.StatusUnauthorized, "invalid credentials")
 		return
