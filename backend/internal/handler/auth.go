@@ -11,6 +11,7 @@ import (
 	"github.com/fingoat/api/internal/auth"
 	"github.com/fingoat/api/internal/config"
 	"github.com/fingoat/api/internal/db"
+	"github.com/fingoat/api/internal/stores"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -32,11 +33,11 @@ func classifyCreateUserErr(err error) error {
 }
 
 type AuthHandler struct {
-	store  AuthStore
+	store  stores.AuthStore
 	config *config.Config
 }
 
-func NewAuthHandler(q AuthStore, cfg *config.Config) *AuthHandler {
+func NewAuthHandler(q stores.AuthStore, cfg *config.Config) *AuthHandler {
 	return &AuthHandler{store: q, config: cfg}
 }
 

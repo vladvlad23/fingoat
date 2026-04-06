@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/fingoat/api/internal/db"
+	"github.com/fingoat/api/internal/stores"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -185,7 +186,7 @@ func (m *mockStore) DeleteRefreshTokensByUserID(ctx context.Context, userID int6
 	return nil
 }
 
-func (m *mockStore) WithTx(_ pgx.Tx) TxableStore {
+func (m *mockStore) WithTx(_ pgx.Tx) stores.TxableStore {
 	// In tests, WithTx returns the same mock store, since we don't
 	// actually use pgx transactions in unit tests.
 	return m

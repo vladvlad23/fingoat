@@ -8,14 +8,15 @@ import (
 	"github.com/fingoat/api/internal/db"
 	"github.com/fingoat/api/internal/middleware"
 	"github.com/fingoat/api/internal/model"
+	"github.com/fingoat/api/internal/stores"
 )
 
 type UserHandler struct {
-	store  UserStore
+	store  stores.UserStore
 	config *config.Config
 }
 
-func NewUserHandler(q UserStore, cfg *config.Config) *UserHandler {
+func NewUserHandler(q stores.UserStore, cfg *config.Config) *UserHandler {
 	return &UserHandler{store: q, config: cfg}
 }
 

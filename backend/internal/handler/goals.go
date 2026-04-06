@@ -8,15 +8,16 @@ import (
 	"github.com/fingoat/api/internal/db"
 	"github.com/fingoat/api/internal/middleware"
 	"github.com/fingoat/api/internal/model"
+	"github.com/fingoat/api/internal/stores"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type GoalHandler struct {
-	store  GoalStore
+	store  stores.GoalStore
 	config *config.Config
 }
 
-func NewGoalHandler(q GoalStore, cfg *config.Config) *GoalHandler {
+func NewGoalHandler(q stores.GoalStore, cfg *config.Config) *GoalHandler {
 	return &GoalHandler{store: q, config: cfg}
 }
 

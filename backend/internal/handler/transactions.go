@@ -9,17 +9,18 @@ import (
 	"github.com/fingoat/api/internal/db"
 	"github.com/fingoat/api/internal/middleware"
 	"github.com/fingoat/api/internal/model"
+	"github.com/fingoat/api/internal/stores"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type TransactionHandler struct {
-	store  TxableStore
-	pool   TxBeginner
+	store  stores.TxableStore
+	pool   stores.TxBeginner
 	config *config.Config
 }
 
-func NewTransactionHandler(q TxableStore, pool TxBeginner, cfg *config.Config) *TransactionHandler {
+func NewTransactionHandler(q stores.TxableStore, pool stores.TxBeginner, cfg *config.Config) *TransactionHandler {
 	return &TransactionHandler{store: q, pool: pool, config: cfg}
 }
 

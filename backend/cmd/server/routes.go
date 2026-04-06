@@ -7,13 +7,14 @@ import (
 	"github.com/fingoat/api/internal/db"
 	"github.com/fingoat/api/internal/handler"
 	mw "github.com/fingoat/api/internal/middleware"
+	"github.com/fingoat/api/internal/stores"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func registerRoutes(pool *pgxpool.Pool, cfg *config.Config) http.Handler {
-	store := &handler.QueriesStore{Queries: db.New(pool)}
+	store := &stores.QueriesStore{Queries: db.New(pool)}
 
 	authH := handler.NewAuthHandler(store, cfg)
 	userH := handler.NewUserHandler(store, cfg)

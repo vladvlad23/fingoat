@@ -8,17 +8,18 @@ import (
 	"github.com/fingoat/api/internal/config"
 	"github.com/fingoat/api/internal/db"
 	"github.com/fingoat/api/internal/middleware"
+	"github.com/fingoat/api/internal/stores"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // SummaryHandler handles GET /api/summary.
 type SummaryHandler struct {
-	store  SummaryStore
+	store  stores.SummaryStore
 	config *config.Config
 }
 
 // NewSummaryHandler constructs a SummaryHandler.
-func NewSummaryHandler(q SummaryStore, cfg *config.Config) *SummaryHandler {
+func NewSummaryHandler(q stores.SummaryStore, cfg *config.Config) *SummaryHandler {
 	return &SummaryHandler{store: q, config: cfg}
 }
 
