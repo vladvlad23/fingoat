@@ -65,7 +65,13 @@ export const api = {
 		register: (fetch: typeof globalThis.fetch, email: string, password: string) =>
 			request<{ token: string }>(fetch, 'POST', '/api/auth/register', null, { email, password }),
 		login: (fetch: typeof globalThis.fetch, email: string, password: string) =>
-			request<{ token: string }>(fetch, 'POST', '/api/auth/login', null, { email, password })
+			request<{ token: string }>(fetch, 'POST', '/api/auth/login', null, { email, password }),
+		/** Exchange the httpOnly refresh_token cookie for a new access token. */
+		refresh: (fetch: typeof globalThis.fetch) =>
+			request<{ token: string }>(fetch, 'POST', '/api/auth/refresh', null),
+		/** Revoke the refresh token on the backend. */
+		logout: (fetch: typeof globalThis.fetch) =>
+			request<void>(fetch, 'POST', '/api/auth/logout', null)
 	},
 	user: {
 		me: (fetch: typeof globalThis.fetch, token: string) =>

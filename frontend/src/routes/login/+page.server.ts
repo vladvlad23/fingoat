@@ -16,7 +16,7 @@ export const actions: Actions = {
 
 		try {
 			const { token } = await api.auth.login(fetch, email, password);
-			cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'strict', maxAge: 86400 });
+			cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 });
 		} catch (e) {
 			return fail(401, { error: (e as Error).message });
 		}
