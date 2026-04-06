@@ -1,0 +1,104 @@
+package handler
+
+import (
+	"encoding/json"
+	"errors"
+	"log"
+	"net/http"
+	"runtime/debug"
+
+	"github.com/fingoat/api/internal/auth"
+	"github.com/fingoat/api/internal/config"
+	"github.com/fingoat/api/internal/db"
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+type ErrEmailTaken struct{}
+
+func (e *ErrEmailTaken) Error() string { return "email already registered" }
+
+func classifyCreateUserErr(err error) error {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		return &ErrEmailTaken{}
+	}
+	return err
+}
+
+type AuthHandler struct {
+	queries *db.Queries
+	config  *config.Config
+}
+
+func NewAuthHandler(q *db.Queries, cfg *config.Config) *AuthHandler {
+	return &AuthHandler{queries: q, config: cfg}
+}
+
+type registerRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type tokenResponse struct {
+	Token string `json:"token"`
+}
+
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var req registerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if req.Email == "" || req.Password == "" {
+		writeError(w, http.StatusBadRequest, "email and password are required")
+		return
+	}
+	hash, err := auth.HashPassword(req.Password)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to hash password")
+		return
+	}
+	user, err := h.queries.CreateUser(r.Context(), db.CreateUserParams{
+		Email:        req.Email,
+		PasswordHash: hash,
+	})
+	if err != nil {
+		var emailTaken *ErrEmailTaken
+		if errors.As(classifyCreateUserErr(err), &emailTaken) {
+			writeError(w, http.StatusConflict, emailTaken.Error())
+			return
+		}
+		log.Printf("register: unexpected error: %v\n%s", err, debug.Stack())
+		writeError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	token, err := auth.GenerateToken(user.ID, h.config.JWTSecret)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to generate token")
+		return
+	}
+	writeJSON(w, http.StatusCreated, tokenResponse{Token: token})
+}
+
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req registerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	user, err := h.queries.GetUserByEmail(r.Context(), req.Email)
+	if err != nil {
+		writeError(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+	if !auth.CheckPassword(req.Password, user.PasswordHash) {
+		writeError(w, http.StatusUnauthorized, "invalid credentials")
+		return
+	}
+	token, err := auth.GenerateToken(user.ID, h.config.JWTSecret)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to generate token")
+		return
+	}
+	writeJSON(w, http.StatusOK, tokenResponse{Token: token})
+}
