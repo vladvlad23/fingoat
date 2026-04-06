@@ -26,11 +26,12 @@ type mockStore struct {
 	updateGoalFn              func(ctx context.Context, arg db.UpdateGoalParams) (db.Goal, error)
 	deleteGoalFn              func(ctx context.Context, id int64) error
 	updateGoalCurrentAmountFn func(ctx context.Context, id int64, delta pgtype.Numeric) (db.Goal, error)
-	createTransactionFn       func(ctx context.Context, arg db.CreateTransactionParams) (db.Transaction, error)
-	listTransactionsFn        func(ctx context.Context, arg db.ListTransactionsParams) ([]db.Transaction, error)
-	getTransactionByIDFn      func(ctx context.Context, id int64) (db.Transaction, error)
-	updateTransactionFn       func(ctx context.Context, arg db.UpdateTransactionParams) (db.Transaction, error)
-	deleteTransactionFn       func(ctx context.Context, id int64) error
+	createTransactionFn          func(ctx context.Context, arg db.CreateTransactionParams) (db.Transaction, error)
+	listTransactionsFn            func(ctx context.Context, arg db.ListTransactionsParams) ([]db.Transaction, error)
+	getTransactionByIDFn          func(ctx context.Context, id int64) (db.Transaction, error)
+	updateTransactionFn           func(ctx context.Context, arg db.UpdateTransactionParams) (db.Transaction, error)
+	deleteTransactionFn           func(ctx context.Context, id int64) error
+	getTransactionSummaryFn       func(ctx context.Context, arg db.GetTransactionSummaryParams) ([]db.TransactionSummaryRow, error)
 }
 
 func (m *mockStore) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error) {
@@ -143,6 +144,13 @@ func (m *mockStore) DeleteTransaction(ctx context.Context, id int64) error {
 		return m.deleteTransactionFn(ctx, id)
 	}
 	return errors.New("DeleteTransaction not implemented")
+}
+
+func (m *mockStore) GetTransactionSummary(ctx context.Context, arg db.GetTransactionSummaryParams) ([]db.TransactionSummaryRow, error) {
+	if m.getTransactionSummaryFn != nil {
+		return m.getTransactionSummaryFn(ctx, arg)
+	}
+	return nil, errors.New("GetTransactionSummary not implemented")
 }
 
 func (m *mockStore) WithTx(_ pgx.Tx) Store {

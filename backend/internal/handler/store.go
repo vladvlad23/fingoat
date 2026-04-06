@@ -32,6 +32,7 @@ type Store interface {
 	GetTransactionByID(ctx context.Context, id int64) (db.Transaction, error)
 	UpdateTransaction(ctx context.Context, arg db.UpdateTransactionParams) (db.Transaction, error)
 	DeleteTransaction(ctx context.Context, id int64) error
+	GetTransactionSummary(ctx context.Context, arg db.GetTransactionSummaryParams) ([]db.TransactionSummaryRow, error)
 
 	// WithTx returns a Store that runs queries within the given transaction.
 	WithTx(tx pgx.Tx) Store

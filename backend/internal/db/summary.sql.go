@@ -1,0 +1,50 @@
+package db
+
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+const getTransactionSummary = `-- name: GetTransactionSummary :many
+SELECT type, COALESCE(category, '') AS category, SUM(amount) AS total
+FROM transactions
+WHERE user_id = $1
+  AND ($2::date IS NULL OR date >= $2)
+  AND ($3::date IS NULL OR date <= $3)
+GROUP BY type, category
+ORDER BY type, category`
+
+// TransactionSummaryRow holds one aggregated row from GetTransactionSummary.
+type TransactionSummaryRow struct {
+	Type     string
+	Category string
+	Total    pgtype.Numeric
+}
+
+// GetTransactionSummaryParams holds parameters for GetTransactionSummary.
+type GetTransactionSummaryParams struct {
+	UserID int64
+	From   *pgtype.Date
+	To     *pgtype.Date
+}
+
+// GetTransactionSummary returns aggregated income/expense totals per category
+// for the given user within the optional date range.
+func (q *Queries) GetTransactionSummary(ctx context.Context, arg GetTransactionSummaryParams) ([]TransactionSummaryRow, error) {
+	rows, err := q.db.Query(ctx, getTransactionSummary, arg.UserID, arg.From, arg.To)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []TransactionSummaryRow
+	for rows.Next() {
+		var r TransactionSummaryRow
+		if err := rows.Scan(&r.Type, &r.Category, &r.Total); err != nil {
+			return nil, err
+		}
+		items = append(items, r)
+	}
+	return items, rows.Err()
+}

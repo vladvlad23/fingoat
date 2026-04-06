@@ -47,6 +47,7 @@ func main() {
 	userH := handler.NewUserHandler(store, cfg)
 	goalH := handler.NewGoalHandler(store, cfg)
 	txH := handler.NewTransactionHandler(store, pool, cfg)
+	summaryH := handler.NewSummaryHandler(store, cfg)
 
 	r := chi.NewRouter()
 	r.Use(chimw.Recoverer)
@@ -72,6 +73,8 @@ func main() {
 		r.Get("/api/transactions/{id}", txH.GetTransaction)
 		r.Put("/api/transactions/{id}", txH.UpdateTransaction)
 		r.Delete("/api/transactions/{id}", txH.DeleteTransaction)
+
+		r.Get("/api/summary", summaryH.GetSummary)
 	})
 
 	log.Printf("server starting on :%s", cfg.Port)
