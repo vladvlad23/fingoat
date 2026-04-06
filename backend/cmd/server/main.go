@@ -55,6 +55,8 @@ func main() {
 
 	r.Post("/api/auth/register", authH.Register)
 	r.Post("/api/auth/login", authH.Login)
+	r.Post("/api/auth/refresh", authH.Refresh)
+	r.Post("/api/auth/logout", authH.Logout)
 
 	r.Group(func(r chi.Router) {
 		r.Use(mw.Auth(cfg.JWTSecret))

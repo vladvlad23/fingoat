@@ -37,3 +37,11 @@ type Transaction struct {
 	Date      pgtype.Date    `json:"date"`
 	CreatedAt time.Time      `json:"created_at"`
 }
+
+type RefreshToken struct {
+	ID        int64
+	UserID    int64
+	TokenHash string
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}

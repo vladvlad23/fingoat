@@ -15,23 +15,27 @@ var errNotFound = errors.New("not found")
 // mockStore is a hand-written mock that implements the Store interface.
 // Each method can be overridden by assigning a function to the corresponding field.
 type mockStore struct {
-	createUserFn              func(ctx context.Context, arg db.CreateUserParams) (db.User, error)
-	getUserByEmailFn          func(ctx context.Context, email string) (db.User, error)
-	getUserByIDFn             func(ctx context.Context, id int64) (db.User, error)
-	updateUserIncomeFn        func(ctx context.Context, id int64, income pgtype.Numeric) (db.User, error)
-	updateUserSettingsFn      func(ctx context.Context, arg db.UpdateUserSettingsParams) (db.User, error)
-	createGoalFn              func(ctx context.Context, arg db.CreateGoalParams) (db.Goal, error)
-	listGoalsByUserFn         func(ctx context.Context, userID int64) ([]db.Goal, error)
-	getGoalByIDFn             func(ctx context.Context, id int64) (db.Goal, error)
-	updateGoalFn              func(ctx context.Context, arg db.UpdateGoalParams) (db.Goal, error)
-	deleteGoalFn              func(ctx context.Context, id int64) error
-	updateGoalCurrentAmountFn func(ctx context.Context, id int64, delta pgtype.Numeric) (db.Goal, error)
-	createTransactionFn          func(ctx context.Context, arg db.CreateTransactionParams) (db.Transaction, error)
+	createUserFn                  func(ctx context.Context, arg db.CreateUserParams) (db.User, error)
+	getUserByEmailFn              func(ctx context.Context, email string) (db.User, error)
+	getUserByIDFn                 func(ctx context.Context, id int64) (db.User, error)
+	updateUserIncomeFn            func(ctx context.Context, id int64, income pgtype.Numeric) (db.User, error)
+	updateUserSettingsFn          func(ctx context.Context, arg db.UpdateUserSettingsParams) (db.User, error)
+	createGoalFn                  func(ctx context.Context, arg db.CreateGoalParams) (db.Goal, error)
+	listGoalsByUserFn             func(ctx context.Context, userID int64) ([]db.Goal, error)
+	getGoalByIDFn                 func(ctx context.Context, id int64) (db.Goal, error)
+	updateGoalFn                  func(ctx context.Context, arg db.UpdateGoalParams) (db.Goal, error)
+	deleteGoalFn                  func(ctx context.Context, id int64) error
+	updateGoalCurrentAmountFn     func(ctx context.Context, id int64, delta pgtype.Numeric) (db.Goal, error)
+	createTransactionFn           func(ctx context.Context, arg db.CreateTransactionParams) (db.Transaction, error)
 	listTransactionsFn            func(ctx context.Context, arg db.ListTransactionsParams) ([]db.Transaction, error)
 	getTransactionByIDFn          func(ctx context.Context, id int64) (db.Transaction, error)
 	updateTransactionFn           func(ctx context.Context, arg db.UpdateTransactionParams) (db.Transaction, error)
 	deleteTransactionFn           func(ctx context.Context, id int64) error
 	getTransactionSummaryFn       func(ctx context.Context, arg db.GetTransactionSummaryParams) ([]db.TransactionSummaryRow, error)
+	createRefreshTokenFn          func(ctx context.Context, arg db.CreateRefreshTokenParams) (db.RefreshToken, error)
+	getRefreshTokenByHashFn       func(ctx context.Context, tokenHash string) (db.RefreshToken, error)
+	deleteRefreshTokenFn          func(ctx context.Context, id int64) error
+	deleteRefreshTokensByUserIDFn func(ctx context.Context, userID int64) error
 }
 
 func (m *mockStore) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error) {
@@ -151,6 +155,34 @@ func (m *mockStore) GetTransactionSummary(ctx context.Context, arg db.GetTransac
 		return m.getTransactionSummaryFn(ctx, arg)
 	}
 	return nil, errors.New("GetTransactionSummary not implemented")
+}
+
+func (m *mockStore) CreateRefreshToken(ctx context.Context, arg db.CreateRefreshTokenParams) (db.RefreshToken, error) {
+	if m.createRefreshTokenFn != nil {
+		return m.createRefreshTokenFn(ctx, arg)
+	}
+	return db.RefreshToken{}, errors.New("CreateRefreshToken not implemented")
+}
+
+func (m *mockStore) GetRefreshTokenByHash(ctx context.Context, tokenHash string) (db.RefreshToken, error) {
+	if m.getRefreshTokenByHashFn != nil {
+		return m.getRefreshTokenByHashFn(ctx, tokenHash)
+	}
+	return db.RefreshToken{}, errNotFound
+}
+
+func (m *mockStore) DeleteRefreshToken(ctx context.Context, id int64) error {
+	if m.deleteRefreshTokenFn != nil {
+		return m.deleteRefreshTokenFn(ctx, id)
+	}
+	return nil
+}
+
+func (m *mockStore) DeleteRefreshTokensByUserID(ctx context.Context, userID int64) error {
+	if m.deleteRefreshTokensByUserIDFn != nil {
+		return m.deleteRefreshTokensByUserIDFn(ctx, userID)
+	}
+	return nil
 }
 
 func (m *mockStore) WithTx(_ pgx.Tx) Store {

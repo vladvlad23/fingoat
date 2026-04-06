@@ -34,6 +34,12 @@ type Store interface {
 	DeleteTransaction(ctx context.Context, id int64) error
 	GetTransactionSummary(ctx context.Context, arg db.GetTransactionSummaryParams) ([]db.TransactionSummaryRow, error)
 
+	// Refresh tokens
+	CreateRefreshToken(ctx context.Context, arg db.CreateRefreshTokenParams) (db.RefreshToken, error)
+	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (db.RefreshToken, error)
+	DeleteRefreshToken(ctx context.Context, id int64) error
+	DeleteRefreshTokensByUserID(ctx context.Context, userID int64) error
+
 	// WithTx returns a Store that runs queries within the given transaction.
 	WithTx(tx pgx.Tx) Store
 }
