@@ -17,9 +17,6 @@ import (
 
 const refreshCookieName = "refresh_token"
 
-// refreshTokenMaxAge is 30 days in seconds, matching auth.RefreshTokenTTL.
-const refreshTokenMaxAge = 30 * 24 * 60 * 60
-
 type ErrEmailTaken struct{}
 
 func (e *ErrEmailTaken) Error() string { return "email already registered" }
@@ -59,7 +56,7 @@ func (h *AuthHandler) issueRefreshCookie(w http.ResponseWriter, r *http.Request,
 	if _, err := h.store.CreateRefreshToken(r.Context(), db.CreateRefreshTokenParams{
 		UserID:    userID,
 		TokenHash: hash,
-		ExpiresAt: time.Now().Add(auth.RefreshTokenTTL),
+		ExpiresAt: time.Now().Add(h.config.RefreshTokenTTL),
 	}); err != nil {
 		return err
 	}
@@ -67,7 +64,7 @@ func (h *AuthHandler) issueRefreshCookie(w http.ResponseWriter, r *http.Request,
 		Name:     refreshCookieName,
 		Value:    raw,
 		Path:     "/api/auth",
-		MaxAge:   refreshTokenMaxAge,
+		MaxAge:   int(h.config.RefreshTokenTTL.Seconds()),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})

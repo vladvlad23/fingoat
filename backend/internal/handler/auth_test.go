@@ -17,8 +17,9 @@ import (
 
 func testConfig() *config.Config {
 	return &config.Config{
-		JWTSecret: "test-secret-key-for-handlers",
-		Port:      "8080",
+		JWTSecret:       "test-secret-key-for-handlers",
+		Port:            "8080",
+		RefreshTokenTTL: 30 * 24 * time.Hour,
 	}
 }
 
@@ -44,7 +45,7 @@ func validRefreshCookieFor(userID int64) (rawToken string, hashFn func(context.C
 		ID:        42,
 		UserID:    userID,
 		TokenHash: hash,
-		ExpiresAt: time.Now().Add(auth.RefreshTokenTTL),
+		ExpiresAt: time.Now().Add(testConfig().RefreshTokenTTL),
 		CreatedAt: time.Now(),
 	}
 	return raw, func(_ context.Context, h string) (db.RefreshToken, error) {
@@ -122,8 +123,8 @@ func TestAuthHandler_Register_SetsRefreshCookie(t *testing.T) {
 			if !c.HttpOnly {
 				t.Error("refresh_token cookie should be HttpOnly")
 			}
-			if c.MaxAge != refreshTokenMaxAge {
-				t.Errorf("MaxAge = %d, want %d", c.MaxAge, refreshTokenMaxAge)
+			if c.MaxAge != int(testConfig().RefreshTokenTTL.Seconds()) {
+				t.Errorf("MaxAge = %d, want %d", c.MaxAge, int(testConfig().RefreshTokenTTL.Seconds()))
 			}
 		}
 	}

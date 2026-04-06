@@ -3,14 +3,16 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL string
-	JWTSecret   string
-	Port        string
+	DatabaseURL      string
+	JWTSecret        string
+	Port             string
+	RefreshTokenTTL  time.Duration
 }
 
 func Load() (*Config, error) {
@@ -28,6 +30,15 @@ func Load() (*Config, error) {
 	}
 	if cfg.Port == "" {
 		cfg.Port = "8080"
+	}
+	if raw := os.Getenv("REFRESH_TOKEN_TTL"); raw != "" {
+		d, err := time.ParseDuration(raw)
+		if err != nil {
+			return nil, fmt.Errorf("REFRESH_TOKEN_TTL: %w", err)
+		}
+		cfg.RefreshTokenTTL = d
+	} else {
+		cfg.RefreshTokenTTL = 30 * 24 * time.Hour
 	}
 	return cfg, nil
 }

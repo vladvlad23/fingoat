@@ -5,11 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"time"
 )
-
-// RefreshTokenTTL is the lifetime of a refresh token.
-const RefreshTokenTTL = 30 * 24 * time.Hour
 
 // GenerateRefreshToken creates a cryptographically random 32-byte token.
 // It returns the raw hex-encoded token (stored in the cookie) and its
