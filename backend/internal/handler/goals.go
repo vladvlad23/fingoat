@@ -12,11 +12,11 @@ import (
 )
 
 type GoalHandler struct {
-	store  Store
+	store  GoalStore
 	config *config.Config
 }
 
-func NewGoalHandler(q Store, cfg *config.Config) *GoalHandler {
+func NewGoalHandler(q GoalStore, cfg *config.Config) *GoalHandler {
 	return &GoalHandler{store: q, config: cfg}
 }
 

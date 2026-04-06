@@ -14,12 +14,12 @@ import (
 )
 
 type TransactionHandler struct {
-	store  Store
+	store  TxableStore
 	pool   TxBeginner
 	config *config.Config
 }
 
-func NewTransactionHandler(q Store, pool TxBeginner, cfg *config.Config) *TransactionHandler {
+func NewTransactionHandler(q TxableStore, pool TxBeginner, cfg *config.Config) *TransactionHandler {
 	return &TransactionHandler{store: q, pool: pool, config: cfg}
 }
 

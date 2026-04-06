@@ -11,11 +11,11 @@ import (
 )
 
 type UserHandler struct {
-	store  Store
+	store  UserStore
 	config *config.Config
 }
 
-func NewUserHandler(q Store, cfg *config.Config) *UserHandler {
+func NewUserHandler(q UserStore, cfg *config.Config) *UserHandler {
 	return &UserHandler{store: q, config: cfg}
 }
 

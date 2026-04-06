@@ -32,11 +32,11 @@ func classifyCreateUserErr(err error) error {
 }
 
 type AuthHandler struct {
-	store  Store
+	store  AuthStore
 	config *config.Config
 }
 
-func NewAuthHandler(q Store, cfg *config.Config) *AuthHandler {
+func NewAuthHandler(q AuthStore, cfg *config.Config) *AuthHandler {
 	return &AuthHandler{store: q, config: cfg}
 }
 

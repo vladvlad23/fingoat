@@ -13,12 +13,12 @@ import (
 
 // SummaryHandler handles GET /api/summary.
 type SummaryHandler struct {
-	store  Store
+	store  SummaryStore
 	config *config.Config
 }
 
 // NewSummaryHandler constructs a SummaryHandler.
-func NewSummaryHandler(q Store, cfg *config.Config) *SummaryHandler {
+func NewSummaryHandler(q SummaryStore, cfg *config.Config) *SummaryHandler {
 	return &SummaryHandler{store: q, config: cfg}
 }
 

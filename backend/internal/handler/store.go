@@ -5,43 +5,26 @@ import (
 
 	"github.com/fingoat/api/internal/db"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Store defines the database operations used by handlers.
-// *db.Queries satisfies this interface.
-type Store interface {
-	// Users
-	CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error)
-	GetUserByEmail(ctx context.Context, email string) (db.User, error)
-	GetUserByID(ctx context.Context, id int64) (db.User, error)
-	UpdateUserIncome(ctx context.Context, id int64, monthlyIncome pgtype.Numeric) (db.User, error)
-	UpdateUserSettings(ctx context.Context, arg db.UpdateUserSettingsParams) (db.User, error)
+// AuthStore combines the stores needed by AuthHandler.
+type AuthStore interface {
+	UserStore
+	RefreshTokenStore
+}
 
-	// Goals
-	CreateGoal(ctx context.Context, arg db.CreateGoalParams) (db.Goal, error)
-	ListGoalsByUser(ctx context.Context, userID int64) ([]db.Goal, error)
-	GetGoalByID(ctx context.Context, id int64) (db.Goal, error)
-	UpdateGoal(ctx context.Context, arg db.UpdateGoalParams) (db.Goal, error)
-	DeleteGoal(ctx context.Context, id int64) error
-	UpdateGoalCurrentAmount(ctx context.Context, id int64, delta pgtype.Numeric) (db.Goal, error)
+// SummaryStore combines the stores needed by SummaryHandler.
+type SummaryStore interface {
+	GoalStore
+	TransactionStore
+}
 
-	// Transactions
-	CreateTransaction(ctx context.Context, arg db.CreateTransactionParams) (db.Transaction, error)
-	ListTransactions(ctx context.Context, arg db.ListTransactionsParams) ([]db.Transaction, error)
-	GetTransactionByID(ctx context.Context, id int64) (db.Transaction, error)
-	UpdateTransaction(ctx context.Context, arg db.UpdateTransactionParams) (db.Transaction, error)
-	DeleteTransaction(ctx context.Context, id int64) error
-	GetTransactionSummary(ctx context.Context, arg db.GetTransactionSummaryParams) ([]db.TransactionSummaryRow, error)
-
-	// Refresh tokens
-	CreateRefreshToken(ctx context.Context, arg db.CreateRefreshTokenParams) (db.RefreshToken, error)
-	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (db.RefreshToken, error)
-	DeleteRefreshToken(ctx context.Context, id int64) error
-	DeleteRefreshTokensByUserID(ctx context.Context, userID int64) error
-
-	// WithTx returns a Store that runs queries within the given transaction.
-	WithTx(tx pgx.Tx) Store
+// TxableStore combines GoalStore and TransactionStore with transaction support,
+// used by TransactionHandler for atomic goal-amount updates.
+type TxableStore interface {
+	GoalStore
+	TransactionStore
+	WithTx(tx pgx.Tx) TxableStore
 }
 
 // TxBeginner abstracts the ability to begin a database transaction.
@@ -50,14 +33,14 @@ type TxBeginner interface {
 	BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error)
 }
 
-// QueriesStore wraps *db.Queries to satisfy the Store interface.
+// QueriesStore wraps *db.Queries to satisfy all store interfaces.
 // The WithTx method on *db.Queries returns *db.Queries, so this wrapper
-// adapts it to return Store.
+// adapts it to return TxableStore.
 type QueriesStore struct {
 	*db.Queries
 }
 
 // WithTx returns a new QueriesStore scoped to the given transaction.
-func (qs *QueriesStore) WithTx(tx pgx.Tx) Store {
+func (qs *QueriesStore) WithTx(tx pgx.Tx) TxableStore {
 	return &QueriesStore{Queries: qs.Queries.WithTx(tx)}
 }
