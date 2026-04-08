@@ -1,4 +1,4 @@
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 
 export interface User {
 	id: number;
@@ -38,7 +38,7 @@ export interface ApiError {
 	error: string;
 }
 
-const BASE = PUBLIC_API_URL;
+const BASE = env.PUBLIC_API_URL;
 
 async function request<T>(
 	fetch: typeof globalThis.fetch,
