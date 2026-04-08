@@ -44,9 +44,9 @@
 
 		<!-- Progress -->
 		<div class="mb-6">
-			<div class="flex justify-between text-sm mb-2">
-				<span class="text-gray-500">Progress</span>
-				<span class="font-semibold text-gray-900">
+			<div class="flex justify-between items-baseline gap-2 text-sm mb-2">
+				<span class="text-gray-500 shrink-0">Progress</span>
+				<span class="font-semibold text-gray-900 text-right">
 					{formatMoney(data.goal.currentAmount, data.goal.currency)} / {formatMoney(data.goal.targetAmount, data.goal.currency)}
 				</span>
 			</div>

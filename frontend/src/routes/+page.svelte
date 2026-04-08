@@ -45,9 +45,9 @@
 			<div class="space-y-4">
 				{#each activeGoals.slice(0, 4) as goal (goal.id)}
 					<div>
-						<div class="flex justify-between text-sm mb-1">
-							<span class="font-medium text-gray-800">{goal.title}</span>
-							<span class="text-gray-500"
+						<div class="flex justify-between items-baseline gap-2 text-sm mb-1">
+							<span class="font-medium text-gray-800 truncate min-w-0">{goal.title}</span>
+							<span class="text-gray-500 whitespace-nowrap shrink-0 text-xs"
 								>{formatMoney(goal.currentAmount, goal.currency)} / {formatMoney(goal.targetAmount, goal.currency)}</span
 							>
 						</div>

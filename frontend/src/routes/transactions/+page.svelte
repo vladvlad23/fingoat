@@ -164,7 +164,7 @@
 
 	<!-- Filters -->
 	<div class="bg-white rounded-xl border border-gray-200 p-4">
-		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+		<div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
 			<div>
 				<label for="filter-goalId" class="block text-xs font-medium text-gray-500 mb-1">Goal</label>
 				<select
@@ -250,7 +250,7 @@
 										update();
 									};
 								}}
-								class="grid grid-cols-2 sm:grid-cols-3 gap-3"
+								class="grid grid-cols-2 sm:grid-cols-3 gap-3 gap-y-2"
 							>
 								<input type="hidden" name="id" value={tx.id} />
 								<div>
@@ -346,43 +346,47 @@
 							</form>
 						</div>
 					{:else}
-						<div class="px-5 py-3 flex items-center justify-between gap-4">
+						<div class="px-4 py-3 flex items-center gap-3">
 							<div class="flex-1 min-w-0">
-								<p class="text-sm font-medium text-gray-900 truncate">{tx.title}</p>
-								<p class="text-xs text-gray-400">
-									{formatDate(tx.date)}
-									{#if tx.category} · {tx.category}{/if}
-									{#if tx.goalId} · <span class="text-emerald-600">{goalMap[tx.goalId]}</span>{/if}
-								</p>
-							</div>
-							<span
-								class="text-sm font-semibold whitespace-nowrap {tx.type === 'income'
-									? 'text-emerald-600'
-									: 'text-red-500'}"
-							>
-								{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount, tx.currency)}
-							</span>
-							<div class="flex gap-2 shrink-0">
-								<button
-									onclick={() => (editingId = tx.id)}
-									class="text-xs text-gray-400 hover:text-gray-700 transition-colors"
-								>
-									Edit
-								</button>
-								<form method="POST" action="?/delete" use:enhance>
-									<input type="hidden" name="id" value={tx.id} />
-									<button
-										type="submit"
-										onclick={(e) => {
-											e.preventDefault();
-											pendingDeleteForm = e.currentTarget.closest('form');
-											confirmOpen = true;
-										}}
-										class="text-xs text-red-400 hover:text-red-600 transition-colors"
+								<div class="flex items-center justify-between gap-2">
+									<p class="text-sm font-medium text-gray-900 truncate">{tx.title}</p>
+									<span
+										class="text-sm font-semibold whitespace-nowrap shrink-0 {tx.type === 'income'
+											? 'text-emerald-600'
+											: 'text-red-500'}"
 									>
-										Delete
-									</button>
-								</form>
+										{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount, tx.currency)}
+									</span>
+								</div>
+								<div class="flex items-center justify-between mt-0.5">
+									<p class="text-xs text-gray-400 truncate">
+										{formatDate(tx.date)}
+										{#if tx.category} · {tx.category}{/if}
+										{#if tx.goalId} · <span class="text-emerald-600">{goalMap[tx.goalId]}</span>{/if}
+									</p>
+									<div class="flex gap-3 shrink-0 ml-2">
+										<button
+											onclick={() => (editingId = tx.id)}
+											class="text-xs text-gray-400 hover:text-gray-700 transition-colors"
+										>
+											Edit
+										</button>
+										<form method="POST" action="?/delete" use:enhance>
+											<input type="hidden" name="id" value={tx.id} />
+											<button
+												type="submit"
+												onclick={(e) => {
+													e.preventDefault();
+													pendingDeleteForm = e.currentTarget.closest('form');
+													confirmOpen = true;
+												}}
+												class="text-xs text-red-400 hover:text-red-600 transition-colors"
+											>
+												Delete
+											</button>
+										</form>
+									</div>
+								</div>
 							</div>
 						</div>
 					{/if}
