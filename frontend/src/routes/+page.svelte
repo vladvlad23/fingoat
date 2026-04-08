@@ -5,6 +5,11 @@
 
 	const activeGoals = $derived(data.goals.filter((g: Goal) => g.status !== 'archived'));
 	const completedGoals = $derived(data.goals.filter((g: Goal) => g.status === 'completed'));
+	const cycleRemaining = $derived(
+		data.cycleSpending !== null
+			? (parseFloat(data.user.monthlyIncome) - parseFloat(data.cycleSpending)).toFixed(2)
+			: null
+	);
 </script>
 
 <svelte:head><title>Dashboard — FinGoat</title></svelte:head>
@@ -16,7 +21,7 @@
 	</div>
 
 	<!-- Summary cards -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 {data.cycleSpending !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4">
+	<div class="grid grid-cols-1 sm:grid-cols-2 {data.cycleSpending !== null ? 'lg:grid-cols-5' : 'md:grid-cols-3'} gap-4">
 		<div class="bg-white rounded-xl border border-gray-200 p-5">
 			<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Monthly Income</p>
 			<p class="text-2xl font-bold text-gray-900 mt-1">{formatMoney(data.user.monthlyIncome, data.user.currency)}</p>
@@ -34,6 +39,13 @@
 			<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">This Cycle</p>
 			<p class="text-2xl font-bold text-red-500 mt-1">{formatMoney(data.cycleSpending, data.user.currency)}</p>
 			<p class="text-xs text-gray-400 mt-1">expenses since day {data.user.paymentDay}</p>
+		</div>
+		<div class="bg-white rounded-xl border border-gray-200 p-5">
+			<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Remaining</p>
+			<p class="text-2xl font-bold mt-1 {parseFloat(cycleRemaining!) >= 0 ? 'text-emerald-600' : 'text-red-500'}">
+				{formatMoney(cycleRemaining!, data.user.currency)}
+			</p>
+			<p class="text-xs text-gray-400 mt-1">of {formatMoney(data.user.monthlyIncome, data.user.currency)}</p>
 		</div>
 		{/if}
 	</div>
