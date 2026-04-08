@@ -1,5 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import { api } from '$lib/api';
 
 /** Decode the payload of a JWT without verifying the signature. */
@@ -36,7 +36,7 @@ function isTokenExpired(token: string): boolean {
 async function tryRefresh(
 	event: Parameters<Handle>[0]['event']
 ): Promise<string | null> {
-	const resp = await fetch(`${PUBLIC_API_URL}/api/auth/refresh`, {
+	const resp = await fetch(`${env.PUBLIC_API_URL}/api/auth/refresh`, {
 		method: 'POST',
 		headers: {
 			// Forward all cookies so the httpOnly refresh_token reaches the backend.

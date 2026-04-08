@@ -1,13 +1,13 @@
 import { redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 
 export const actions: Actions = {
 	default: async ({ cookies, request }) => {
 		// Tell the backend to revoke the refresh token. Forward cookies so the
 		// httpOnly refresh_token cookie is included in the request.
 		try {
-			await fetch(`${PUBLIC_API_URL}/api/auth/logout`, {
+			await fetch(`${env.PUBLIC_API_URL}/api/auth/logout`, {
 				method: 'POST',
 				headers: {
 					cookie: request.headers.get('cookie') ?? ''

@@ -90,6 +90,9 @@ func TestUserHandler_UpdateMe_Success(t *testing.T) {
 	t.Parallel()
 
 	store := &mockStore{
+		getUserByIDFn: func(_ context.Context, id int64) (db.User, error) {
+			return db.User{ID: id, Email: "user@example.com", Currency: "USD"}, nil
+		},
 		updateUserSettingsFn: func(_ context.Context, arg db.UpdateUserSettingsParams) (db.User, error) {
 			return db.User{
 				ID:            arg.ID,
@@ -214,6 +217,9 @@ func TestUserHandler_UpdateMe_WithoutPaymentDay(t *testing.T) {
 
 	var receivedParams db.UpdateUserSettingsParams
 	store := &mockStore{
+		getUserByIDFn: func(_ context.Context, id int64) (db.User, error) {
+			return db.User{ID: id, Email: "user@example.com", Currency: "USD"}, nil
+		},
 		updateUserSettingsFn: func(_ context.Context, arg db.UpdateUserSettingsParams) (db.User, error) {
 			receivedParams = arg
 			return db.User{

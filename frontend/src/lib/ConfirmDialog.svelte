@@ -17,7 +17,7 @@
 		oncancel
 	}: Props = $props();
 
-	let dialogEl: HTMLDialogElement | undefined = $state();
+	let dialogEl: HTMLDivElement | undefined = $state();
 
 	$effect(() => {
 		if (open && dialogEl) {
