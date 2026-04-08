@@ -10,9 +10,9 @@ import (
 )
 
 const createTransaction = `-- name: CreateTransaction :one
-INSERT INTO transactions (user_id, goal_id, title, amount, type, category, date)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, user_id, goal_id, title, amount, type, category, date, created_at`
+INSERT INTO transactions (user_id, goal_id, title, amount, type, category, date, currency)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, user_id, goal_id, title, amount, type, category, date, currency, created_at`
 
 type CreateTransactionParams struct {
 	UserID   int64          `json:"user_id"`
@@ -22,17 +22,18 @@ type CreateTransactionParams struct {
 	Type     string         `json:"type"`
 	Category *string        `json:"category"`
 	Date     pgtype.Date    `json:"date"`
+	Currency string         `json:"currency"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
-	row := q.db.QueryRow(ctx, createTransaction, arg.UserID, arg.GoalID, arg.Title, arg.Amount, arg.Type, arg.Category, arg.Date)
+	row := q.db.QueryRow(ctx, createTransaction, arg.UserID, arg.GoalID, arg.Title, arg.Amount, arg.Type, arg.Category, arg.Date, arg.Currency)
 	var i Transaction
-	err := row.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.CreatedAt)
+	err := row.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.Currency, &i.CreatedAt)
 	return i, err
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT id, user_id, goal_id, title, amount, type, category, date, created_at FROM transactions
+SELECT id, user_id, goal_id, title, amount, type, category, date, currency, created_at FROM transactions
 WHERE user_id = $1
   AND ($2::bigint IS NULL OR goal_id = $2)
   AND ($3::text IS NULL OR type = $3)
@@ -57,7 +58,7 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 	var items []Transaction
 	for rows.Next() {
 		var i Transaction
-		if err := rows.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.CreatedAt); err != nil {
+		if err := rows.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.Currency, &i.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -66,20 +67,20 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 }
 
 const getTransactionByID = `-- name: GetTransactionByID :one
-SELECT id, user_id, goal_id, title, amount, type, category, date, created_at FROM transactions WHERE id = $1`
+SELECT id, user_id, goal_id, title, amount, type, category, date, currency, created_at FROM transactions WHERE id = $1`
 
 func (q *Queries) GetTransactionByID(ctx context.Context, id int64) (Transaction, error) {
 	row := q.db.QueryRow(ctx, getTransactionByID, id)
 	var i Transaction
-	err := row.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.CreatedAt)
+	err := row.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.Currency, &i.CreatedAt)
 	return i, err
 }
 
 const updateTransaction = `-- name: UpdateTransaction :one
 UPDATE transactions
-SET title = $2, amount = $3, type = $4, category = $5, date = $6, goal_id = $7
+SET title = $2, amount = $3, type = $4, category = $5, date = $6, goal_id = $7, currency = $8
 WHERE id = $1
-RETURNING id, user_id, goal_id, title, amount, type, category, date, created_at`
+RETURNING id, user_id, goal_id, title, amount, type, category, date, currency, created_at`
 
 type UpdateTransactionParams struct {
 	ID       int64          `json:"id"`
@@ -89,12 +90,13 @@ type UpdateTransactionParams struct {
 	Category *string        `json:"category"`
 	Date     pgtype.Date    `json:"date"`
 	GoalID   *int64         `json:"goal_id"`
+	Currency string         `json:"currency"`
 }
 
 func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (Transaction, error) {
-	row := q.db.QueryRow(ctx, updateTransaction, arg.ID, arg.Title, arg.Amount, arg.Type, arg.Category, arg.Date, arg.GoalID)
+	row := q.db.QueryRow(ctx, updateTransaction, arg.ID, arg.Title, arg.Amount, arg.Type, arg.Category, arg.Date, arg.GoalID, arg.Currency)
 	var i Transaction
-	err := row.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.CreatedAt)
+	err := row.Scan(&i.ID, &i.UserID, &i.GoalID, &i.Title, &i.Amount, &i.Type, &i.Category, &i.Date, &i.Currency, &i.CreatedAt)
 	return i, err
 }
 

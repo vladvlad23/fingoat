@@ -16,7 +16,7 @@
 
 		<h3 class="text-sm font-semibold text-gray-700 mb-3">Monthly Income</h3>
 		<p class="text-sm text-gray-500 mb-4">
-			Current: <span class="font-medium text-gray-900">{formatMoney(data.user.monthlyIncome)}</span>
+			Current: <span class="font-medium text-gray-900">{formatMoney(data.user.monthlyIncome, data.user.currency)}</span>
 		</p>
 		<p class="text-sm text-gray-500 mb-4">
 			Payment day: <span class="font-medium text-gray-900">
@@ -35,8 +35,8 @@
 			</div>
 		{/if}
 
-		<form method="POST" use:enhance class="flex gap-3 items-end">
-			<div class="flex-1">
+		<form method="POST" use:enhance class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+			<div>
 				<label for="monthlyIncome" class="block text-sm font-medium text-gray-700 mb-1">
 					New Monthly Income
 				</label>
@@ -52,7 +52,7 @@
 					placeholder="5000.00"
 				/>
 			</div>
-			<div class="flex-1">
+			<div>
 				<label for="paymentDay" class="block text-sm font-medium text-gray-700 mb-1">
 					Payment Day (1–28, optional)
 				</label>
@@ -67,12 +67,28 @@
 					placeholder="25"
 				/>
 			</div>
-			<button
-				type="submit"
-				class="rounded-lg bg-emerald-600 text-white px-5 py-2 text-sm font-semibold hover:bg-emerald-700 transition-colors"
-			>
-				Update
-			</button>
+			<div>
+				<label for="currency" class="block text-sm font-medium text-gray-700 mb-1">
+					Default Currency
+				</label>
+				<select
+					id="currency"
+					name="currency"
+					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+				>
+					{#each ['USD', 'EUR', 'RON'] as c}
+						<option value={c} selected={c === (form?.user?.currency ?? data.user.currency)}>{c}</option>
+					{/each}
+				</select>
+			</div>
+			<div class="sm:col-span-3">
+				<button
+					type="submit"
+					class="rounded-lg bg-emerald-600 text-white px-5 py-2 text-sm font-semibold hover:bg-emerald-700 transition-colors"
+				>
+					Update
+				</button>
+			</div>
 		</form>
 	</div>
 

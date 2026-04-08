@@ -37,6 +37,7 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 type updateMeRequest struct {
 	MonthlyIncome *string `json:"monthlyIncome"`
 	PaymentDay    *int32  `json:"paymentDay"`
+	Currency      *string `json:"currency"`
 }
 
 func (h *UserHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
@@ -65,10 +66,27 @@ func (h *UserHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	// Fetch existing user to preserve currency if not provided
+	existing, err := h.store.GetUserByID(r.Context(), userID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to fetch user")
+		return
+	}
+	currency := existing.Currency
+	if req.Currency != nil {
+		if !isValidCurrency(*req.Currency) {
+			writeError(w, http.StatusBadRequest, "currency must be one of: USD, EUR, RON")
+			return
+		}
+		currency = *req.Currency
+	}
+
 	user, err := h.store.UpdateUserSettings(r.Context(), db.UpdateUserSettingsParams{
 		ID:            userID,
 		MonthlyIncome: income,
 		PaymentDay:    req.PaymentDay,
+		Currency:      currency,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to update settings")

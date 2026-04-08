@@ -12,6 +12,7 @@ type User struct {
 	PasswordHash  string         `json:"password_hash"`
 	MonthlyIncome pgtype.Numeric `json:"monthly_income"`
 	PaymentDay    *int32         `json:"payment_day"`
+	Currency      string         `json:"currency"`
 	CreatedAt     time.Time      `json:"created_at"`
 }
 
@@ -23,6 +24,7 @@ type Goal struct {
 	CurrentAmount pgtype.Numeric `json:"current_amount"`
 	Deadline      *pgtype.Date   `json:"deadline"`
 	Status        string         `json:"status"`
+	Currency      string         `json:"currency"`
 	CreatedAt     time.Time      `json:"created_at"`
 }
 
@@ -35,6 +37,7 @@ type Transaction struct {
 	Type      string         `json:"type"`
 	Category  *string        `json:"category"`
 	Date      pgtype.Date    `json:"date"`
+	Currency  string         `json:"currency"`
 	CreatedAt time.Time      `json:"created_at"`
 }
 

@@ -25,6 +25,7 @@ type createGoalRequest struct {
 	Title        string  `json:"title"`
 	TargetAmount string  `json:"targetAmount"`
 	Deadline     *string `json:"deadline,omitempty"`
+	Currency     string  `json:"currency,omitempty"`
 }
 
 type updateGoalRequest struct {
@@ -32,6 +33,7 @@ type updateGoalRequest struct {
 	TargetAmount string  `json:"targetAmount"`
 	Deadline     *string `json:"deadline,omitempty"`
 	Status       string  `json:"status"`
+	Currency     string  `json:"currency,omitempty"`
 }
 
 func (h *GoalHandler) ListGoals(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +74,14 @@ func (h *GoalHandler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid targetAmount")
 		return
 	}
+	currency := req.Currency
+	if currency == "" {
+		currency = "USD"
+	}
+	if !isValidCurrency(currency) {
+		writeError(w, http.StatusBadRequest, "currency must be one of: USD, EUR, RON")
+		return
+	}
 	var deadline *pgtype.Date
 	if req.Deadline != nil {
 		d, ok := parseDate(*req.Deadline)
@@ -86,6 +96,7 @@ func (h *GoalHandler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 		Title:        req.Title,
 		TargetAmount: target,
 		Deadline:     deadline,
+		Currency:     currency,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create goal")
@@ -153,6 +164,13 @@ func (h *GoalHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 	if status == "" {
 		status = existing.Status
 	}
+	currency := req.Currency
+	if currency == "" {
+		currency = existing.Currency
+	} else if !isValidCurrency(currency) {
+		writeError(w, http.StatusBadRequest, "currency must be one of: USD, EUR, RON")
+		return
+	}
 	var deadline *pgtype.Date
 	if req.Deadline != nil {
 		d, ok := parseDate(*req.Deadline)
@@ -170,6 +188,7 @@ func (h *GoalHandler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 		TargetAmount: target,
 		Deadline:     deadline,
 		Status:       status,
+		Currency:     currency,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to update goal")

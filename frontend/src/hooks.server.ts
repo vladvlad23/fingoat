@@ -112,7 +112,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 				id: user.id,
 				email: user.email,
 				monthlyIncome: user.monthlyIncome,
-				paymentDay: user.paymentDay
+				paymentDay: user.paymentDay,
+				currency: user.currency
 			};
 		} catch {
 			// Token invalid on the backend (shouldn't happen after refresh, but be safe).

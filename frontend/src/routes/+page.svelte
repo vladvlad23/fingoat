@@ -19,7 +19,7 @@
 	<div class="grid grid-cols-1 sm:grid-cols-2 {data.cycleSpending !== null ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4">
 		<div class="bg-white rounded-xl border border-gray-200 p-5">
 			<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Monthly Income</p>
-			<p class="text-2xl font-bold text-gray-900 mt-1">{formatMoney(data.user.monthlyIncome)}</p>
+			<p class="text-2xl font-bold text-gray-900 mt-1">{formatMoney(data.user.monthlyIncome, data.user.currency)}</p>
 		</div>
 		<div class="bg-white rounded-xl border border-gray-200 p-5">
 			<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Active Goals</p>
@@ -32,7 +32,7 @@
 		{#if data.cycleSpending !== null}
 		<div class="bg-white rounded-xl border border-gray-200 p-5">
 			<p class="text-xs font-medium text-gray-500 uppercase tracking-wide">This Cycle</p>
-			<p class="text-2xl font-bold text-red-500 mt-1">{formatMoney(data.cycleSpending)}</p>
+			<p class="text-2xl font-bold text-red-500 mt-1">{formatMoney(data.cycleSpending, data.user.currency)}</p>
 			<p class="text-xs text-gray-400 mt-1">expenses since day {data.user.paymentDay}</p>
 		</div>
 		{/if}
@@ -48,7 +48,7 @@
 						<div class="flex justify-between text-sm mb-1">
 							<span class="font-medium text-gray-800">{goal.title}</span>
 							<span class="text-gray-500"
-								>{formatMoney(goal.currentAmount)} / {formatMoney(goal.targetAmount)}</span
+								>{formatMoney(goal.currentAmount, goal.currency)} / {formatMoney(goal.targetAmount, goal.currency)}</span
 							>
 						</div>
 						<div class="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -92,7 +92,7 @@
 								? 'text-emerald-600'
 								: 'text-red-500'}"
 						>
-							{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount)}
+							{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount, tx.currency)}
 						</span>
 					</div>
 				{/each}

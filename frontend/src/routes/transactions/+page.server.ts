@@ -34,6 +34,7 @@ export const actions: Actions = {
 		const category = (form.get('category') as string)?.trim() || undefined;
 		const goalIdStr = form.get('goalId') as string;
 		const goalId = goalIdStr ? Number(goalIdStr) : undefined;
+		const currency = (form.get('currency') as string)?.trim() || undefined;
 
 		if (!title || !amount || !type || !date)
 			return fail(400, { createError: 'Title, amount, type, and date are required' });
@@ -45,7 +46,8 @@ export const actions: Actions = {
 				type,
 				date,
 				...(category && { category }),
-				...(goalId && { goalId })
+				...(goalId && { goalId }),
+				...(currency && { currency })
 			});
 		} catch (e) {
 			return fail(400, { createError: (e as Error).message });
@@ -72,6 +74,7 @@ export const actions: Actions = {
 		const category = (form.get('category') as string)?.trim() || undefined;
 		const goalIdStr = form.get('goalId') as string;
 		const goalId = goalIdStr ? Number(goalIdStr) : undefined;
+		const txCurrency = (form.get('currency') as string)?.trim() || undefined;
 
 		try {
 			await api.transactions.update(fetch, locals.token, id, {
@@ -80,7 +83,8 @@ export const actions: Actions = {
 				...(type && { type }),
 				...(date && { date }),
 				...(category !== undefined && { category }),
-				...(goalId !== undefined && { goalId })
+				...(goalId !== undefined && { goalId }),
+				...(txCurrency && { currency: txCurrency })
 			});
 		} catch (e) {
 			return fail(400, { updateError: (e as Error).message });

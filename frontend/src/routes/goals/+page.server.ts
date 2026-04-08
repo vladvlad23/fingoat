@@ -16,11 +16,12 @@ export const actions: Actions = {
 		const title = (form.get('title') as string)?.trim();
 		const targetAmount = (form.get('targetAmount') as string)?.trim();
 		const deadline = (form.get('deadline') as string) || undefined;
+		const currency = (form.get('currency') as string)?.trim() || undefined;
 
 		if (!title || !targetAmount) return fail(400, { createError: 'Title and target amount are required' });
 
 		try {
-			await api.goals.create(fetch, locals.token, { title, targetAmount, deadline: deadline || undefined });
+			await api.goals.create(fetch, locals.token, { title, targetAmount, deadline: deadline || undefined, currency });
 		} catch (e) {
 			return fail(400, { createError: (e as Error).message });
 		}

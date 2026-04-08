@@ -14,11 +14,12 @@ export const actions: Actions = {
 		const monthlyIncome = (form.get('monthlyIncome') as string)?.trim();
 		const paymentDayRaw = (form.get('paymentDay') as string)?.trim();
 		const paymentDay = paymentDayRaw ? parseInt(paymentDayRaw, 10) : undefined;
+		const currency = (form.get('currency') as string)?.trim() || undefined;
 
 		if (!monthlyIncome) return fail(400, { error: 'Monthly income is required' });
 
 		try {
-			const user = await api.user.updateSettings(fetch, locals.token, monthlyIncome, paymentDay);
+			const user = await api.user.updateSettings(fetch, locals.token, monthlyIncome, paymentDay, currency);
 			return { success: true, user };
 		} catch (e) {
 			return fail(400, { error: (e as Error).message });

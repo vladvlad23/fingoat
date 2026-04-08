@@ -28,13 +28,15 @@ export const actions: Actions = {
 		const targetAmount = (form.get('targetAmount') as string)?.trim();
 		const deadline = (form.get('deadline') as string) || undefined;
 		const status = (form.get('status') as string) || undefined;
+		const currency = (form.get('currency') as string)?.trim() || undefined;
 
 		try {
 			await api.goals.update(fetch, locals.token, id, {
 				...(title && { title }),
 				...(targetAmount && { targetAmount }),
 				...(deadline !== undefined && { deadline }),
-				...(status && { status })
+				...(status && { status }),
+				...(currency && { currency })
 			});
 		} catch (e) {
 			return fail(400, { updateError: (e as Error).message });

@@ -2,12 +2,15 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { formatMoney, formatDate, type Transaction, type Goal } from '$lib/api';
+	import { formatMoney, formatDate, type Goal } from '$lib/api';
+	import ConfirmDialog from '$lib/ConfirmDialog.svelte';
 
 	let { data, form } = $props();
 
 	let showCreate = $state(false);
 	let editingId = $state<number | null>(null);
+	let confirmOpen = $state(false);
+	let pendingDeleteForm = $state<HTMLFormElement | null>(null);
 	let newTxDate = $state(new Date().toISOString().split('T')[0]);
 
 	// filters
@@ -71,16 +74,18 @@
 				class="grid grid-cols-1 sm:grid-cols-3 gap-4"
 			>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+					<label for="new-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
 					<input
+						id="new-title"
 						name="title"
 						required
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+					<label for="new-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
 					<input
+						id="new-amount"
 						name="amount"
 						type="number"
 						step="0.01"
@@ -90,8 +95,9 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+					<label for="new-type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
 					<select
+						id="new-type"
 						name="type"
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 					>
@@ -100,8 +106,9 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+					<label for="new-date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
 					<input
+						id="new-date"
 						name="date"
 						type="date"
 						required
@@ -110,22 +117,36 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
+					<label for="new-category" class="block text-sm font-medium text-gray-700 mb-1">Category (optional)</label>
 					<input
+						id="new-category"
 						name="category"
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 						placeholder="Food, transport..."
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Goal (optional)</label>
+					<label for="new-goalId" class="block text-sm font-medium text-gray-700 mb-1">Goal (optional)</label>
 					<select
+						id="new-goalId"
 						name="goalId"
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 					>
 						<option value="">None</option>
 						{#each data.goals as goal (goal.id)}
 							<option value={goal.id}>{goal.title}</option>
+						{/each}
+					</select>
+				</div>
+				<div>
+					<label for="new-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+					<select
+						id="new-currency"
+						name="currency"
+						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+					>
+						{#each ['RON', 'EUR', 'USD'] as c}
+							<option value={c}>{c}</option>
 						{/each}
 					</select>
 				</div>
@@ -145,8 +166,9 @@
 	<div class="bg-white rounded-xl border border-gray-200 p-4">
 		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
 			<div>
-				<label class="block text-xs font-medium text-gray-500 mb-1">Goal</label>
+				<label for="filter-goalId" class="block text-xs font-medium text-gray-500 mb-1">Goal</label>
 				<select
+					id="filter-goalId"
 					bind:value={filterGoalId}
 					class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 				>
@@ -157,8 +179,9 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+				<label for="filter-type" class="block text-xs font-medium text-gray-500 mb-1">Type</label>
 				<select
+					id="filter-type"
 					bind:value={filterType}
 					class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 				>
@@ -168,16 +191,18 @@
 				</select>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-gray-500 mb-1">From</label>
+				<label for="filter-from" class="block text-xs font-medium text-gray-500 mb-1">From</label>
 				<input
+					id="filter-from"
 					type="date"
 					bind:value={filterFrom}
 					class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 				/>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-gray-500 mb-1">To</label>
+				<label for="filter-to" class="block text-xs font-medium text-gray-500 mb-1">To</label>
 				<input
+					id="filter-to"
 					type="date"
 					bind:value={filterTo}
 					class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -229,16 +254,18 @@
 							>
 								<input type="hidden" name="id" value={tx.id} />
 								<div>
-									<label class="block text-xs font-medium text-gray-500 mb-1">Title</label>
+									<label for="edit-title-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Title</label>
 									<input
+										id="edit-title-{tx.id}"
 										name="title"
 										value={tx.title}
 										class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 									/>
 								</div>
 								<div>
-									<label class="block text-xs font-medium text-gray-500 mb-1">Amount</label>
+									<label for="edit-amount-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Amount</label>
 									<input
+										id="edit-amount-{tx.id}"
 										name="amount"
 										type="number"
 										step="0.01"
@@ -247,8 +274,9 @@
 									/>
 								</div>
 								<div>
-									<label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+									<label for="edit-type-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Type</label>
 									<select
+										id="edit-type-{tx.id}"
 										name="type"
 										class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 									>
@@ -257,8 +285,9 @@
 									</select>
 								</div>
 								<div>
-									<label class="block text-xs font-medium text-gray-500 mb-1">Date</label>
+									<label for="edit-date-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Date</label>
 									<input
+										id="edit-date-{tx.id}"
 										name="date"
 										type="date"
 										value={tx.date}
@@ -266,22 +295,36 @@
 									/>
 								</div>
 								<div>
-									<label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
+									<label for="edit-category-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Category</label>
 									<input
+										id="edit-category-{tx.id}"
 										name="category"
 										value={tx.category ?? ''}
 										class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 									/>
 								</div>
 								<div>
-									<label class="block text-xs font-medium text-gray-500 mb-1">Goal</label>
+									<label for="edit-goalId-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Goal</label>
 									<select
+										id="edit-goalId-{tx.id}"
 										name="goalId"
 										class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 									>
 										<option value="">None</option>
 										{#each data.goals as goal (goal.id)}
 											<option value={goal.id} selected={goal.id === tx.goalId}>{goal.title}</option>
+										{/each}
+									</select>
+								</div>
+								<div>
+									<label for="edit-currency-{tx.id}" class="block text-xs font-medium text-gray-500 mb-1">Currency</label>
+									<select
+										id="edit-currency-{tx.id}"
+										name="currency"
+										class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+									>
+										{#each ['USD', 'EUR', 'RON'] as c}
+											<option value={c} selected={c === tx.currency}>{c}</option>
 										{/each}
 									</select>
 								</div>
@@ -317,7 +360,7 @@
 									? 'text-emerald-600'
 									: 'text-red-500'}"
 							>
-								{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount)}
+								{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount, tx.currency)}
 							</span>
 							<div class="flex gap-2 shrink-0">
 								<button
@@ -330,7 +373,11 @@
 									<input type="hidden" name="id" value={tx.id} />
 									<button
 										type="submit"
-										onclick={(e) => { if (!confirm('Delete this transaction?')) e.preventDefault(); }}
+										onclick={(e) => {
+											e.preventDefault();
+											pendingDeleteForm = e.currentTarget.closest('form');
+											confirmOpen = true;
+										}}
 										class="text-xs text-red-400 hover:text-red-600 transition-colors"
 									>
 										Delete
@@ -344,3 +391,17 @@
 		{/if}
 	</div>
 </div>
+
+<ConfirmDialog
+	open={confirmOpen}
+	title="Delete transaction?"
+	message="This will permanently delete the transaction and cannot be undone."
+	onconfirm={() => {
+		pendingDeleteForm?.requestSubmit();
+		confirmOpen = false;
+	}}
+	oncancel={() => {
+		confirmOpen = false;
+		pendingDeleteForm = null;
+	}}
+/>

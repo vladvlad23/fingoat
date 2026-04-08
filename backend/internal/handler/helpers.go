@@ -42,3 +42,7 @@ func parseDate(s string) (pgtype.Date, bool) {
 	}
 	return d, true
 }
+
+func isValidCurrency(c string) bool {
+	return c == "USD" || c == "EUR" || c == "RON"
+}

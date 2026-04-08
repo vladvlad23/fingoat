@@ -13,6 +13,7 @@ type UserResponse struct {
 	Email         string    `json:"email"`
 	MonthlyIncome string    `json:"monthlyIncome"`
 	PaymentDay    *int32    `json:"paymentDay,omitempty"`
+	Currency      string    `json:"currency"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
 
@@ -24,6 +25,7 @@ type GoalResponse struct {
 	CurrentAmount string    `json:"currentAmount"`
 	Deadline      *string   `json:"deadline,omitempty"`
 	Status        string    `json:"status"`
+	Currency      string    `json:"currency"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
 
@@ -36,6 +38,7 @@ type TransactionResponse struct {
 	Type      string    `json:"type"`
 	Category  *string   `json:"category,omitempty"`
 	Date      string    `json:"date"`
+	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -60,6 +63,7 @@ func UserToResponse(u db.User) UserResponse {
 		Email:         u.Email,
 		MonthlyIncome: numericToString(u.MonthlyIncome),
 		PaymentDay:    u.PaymentDay,
+		Currency:      u.Currency,
 		CreatedAt:     u.CreatedAt,
 	}
 }
@@ -72,6 +76,7 @@ func GoalToResponse(g db.Goal) GoalResponse {
 		TargetAmount:  numericToString(g.TargetAmount),
 		CurrentAmount: numericToString(g.CurrentAmount),
 		Status:        g.Status,
+		Currency:      g.Currency,
 		CreatedAt:     g.CreatedAt,
 	}
 	if g.Deadline != nil && g.Deadline.Valid {
@@ -91,6 +96,7 @@ func TransactionToResponse(t db.Transaction) TransactionResponse {
 		Type:      t.Type,
 		Category:  t.Category,
 		Date:      t.Date.Time.Format("2006-01-02"),
+		Currency:  t.Currency,
 		CreatedAt: t.CreatedAt,
 	}
 }

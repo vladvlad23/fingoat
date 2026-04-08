@@ -31,6 +31,7 @@ type createTransactionRequest struct {
 	Type     string  `json:"type"`
 	Category *string `json:"category,omitempty"`
 	Date     string  `json:"date"`
+	Currency string  `json:"currency,omitempty"`
 }
 
 type updateTransactionRequest struct {
@@ -40,6 +41,7 @@ type updateTransactionRequest struct {
 	Type     string  `json:"type"`
 	Category *string `json:"category,omitempty"`
 	Date     string  `json:"date"`
+	Currency string  `json:"currency,omitempty"`
 }
 
 func negateNumeric(n pgtype.Numeric) pgtype.Numeric {
@@ -120,6 +122,14 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		writeError(w, http.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
 		return
 	}
+	currency := req.Currency
+	if currency == "" {
+		currency = "USD"
+	}
+	if !isValidCurrency(currency) {
+		writeError(w, http.StatusBadRequest, "currency must be one of: USD, EUR, RON")
+		return
+	}
 
 	if req.GoalID != nil {
 		pgTx, err := h.pool.BeginTx(r.Context(), pgx.TxOptions{})
@@ -144,6 +154,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 			Type:     req.Type,
 			Category: req.Category,
 			Date:     date,
+			Currency: currency,
 		})
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "failed to create transaction")
@@ -169,6 +180,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		Type:     req.Type,
 		Category: req.Category,
 		Date:     date,
+		Currency: currency,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create transaction")
@@ -242,6 +254,14 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		txType = existing.Type
 	}
 
+	newCurrency := req.Currency
+	if newCurrency == "" {
+		newCurrency = existing.Currency
+	} else if !isValidCurrency(newCurrency) {
+		writeError(w, http.StatusBadRequest, "currency must be one of: USD, EUR, RON")
+		return
+	}
+
 	oldGoalID := existing.GoalID
 	newGoalID := req.GoalID
 
@@ -277,7 +297,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		}
 		t, err := qtx.UpdateTransaction(r.Context(), db.UpdateTransactionParams{
 			ID: id, Title: title, Amount: newAmount, Type: txType,
-			Category: req.Category, Date: newDate, GoalID: newGoalID,
+			Category: req.Category, Date: newDate, GoalID: newGoalID, Currency: newCurrency,
 		})
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "failed to update transaction")
@@ -293,7 +313,7 @@ func (h *TransactionHandler) UpdateTransaction(w http.ResponseWriter, r *http.Re
 
 	t, err := h.store.UpdateTransaction(r.Context(), db.UpdateTransactionParams{
 		ID: id, Title: title, Amount: newAmount, Type: txType,
-		Category: req.Category, Date: newDate, GoalID: newGoalID,
+		Category: req.Category, Date: newDate, GoalID: newGoalID, Currency: newCurrency,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to update transaction")

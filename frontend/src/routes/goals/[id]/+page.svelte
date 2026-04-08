@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { formatMoney, formatDate, goalProgress, type Transaction } from '$lib/api';
+	import { formatMoney, formatDate, goalProgress } from '$lib/api';
 
 	let { data, form } = $props();
 
@@ -47,7 +47,7 @@
 			<div class="flex justify-between text-sm mb-2">
 				<span class="text-gray-500">Progress</span>
 				<span class="font-semibold text-gray-900">
-					{formatMoney(data.goal.currentAmount)} / {formatMoney(data.goal.targetAmount)}
+					{formatMoney(data.goal.currentAmount, data.goal.currency)} / {formatMoney(data.goal.targetAmount, data.goal.currency)}
 				</span>
 			</div>
 			<div class="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -78,16 +78,18 @@
 					class="grid grid-cols-1 sm:grid-cols-2 gap-4"
 				>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+						<label for="edit-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
 						<input
+							id="edit-title"
 							name="title"
 							value={data.goal.title}
 							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
+						<label for="edit-targetAmount" class="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
 						<input
+							id="edit-targetAmount"
 							name="targetAmount"
 							value={data.goal.targetAmount}
 							type="number"
@@ -96,8 +98,9 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+						<label for="edit-deadline" class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
 						<input
+							id="edit-deadline"
 							name="deadline"
 							type="date"
 							value={data.goal.deadline ?? ''}
@@ -105,13 +108,26 @@
 						/>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+						<label for="edit-status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
 						<select
+							id="edit-status"
 							name="status"
 							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 						>
 							{#each statusOptions as s}
 								<option value={s} selected={s === data.goal.status}>{s}</option>
+							{/each}
+						</select>
+					</div>
+					<div>
+						<label for="edit-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+						<select
+							id="edit-currency"
+							name="currency"
+							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+						>
+							{#each ['USD', 'EUR', 'RON'] as c}
+								<option value={c} selected={c === data.goal.currency}>{c}</option>
 							{/each}
 						</select>
 					</div>
@@ -152,7 +168,7 @@
 						<span
 							class="text-sm font-semibold {tx.type === 'income' ? 'text-emerald-600' : 'text-red-500'}"
 						>
-							{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount)}
+							{tx.type === 'income' ? '+' : '-'}{formatMoney(tx.amount, tx.currency)}
 						</span>
 					</div>
 				{/each}

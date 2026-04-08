@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { formatMoney, formatDate, goalProgress, type Goal } from '$lib/api';
+	import { formatMoney, formatDate, goalProgress } from '$lib/api';
+	import ConfirmDialog from '$lib/ConfirmDialog.svelte';
 
 	let { data, form } = $props();
 
 	let showCreate = $state(false);
+	let confirmOpen = $state(false);
+	let pendingDeleteForm = $state<HTMLFormElement | null>(null);
 
 	const statusColors: Record<string, string> = {
 		active: 'bg-blue-100 text-blue-700',
@@ -46,8 +49,9 @@
 				class="grid grid-cols-1 sm:grid-cols-3 gap-4"
 			>
 				<div>
-					<label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+					<label for="goal-title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
 					<input
+						id="goal-title"
 						name="title"
 						required
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -55,8 +59,9 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
+					<label for="goal-targetAmount" class="block text-sm font-medium text-gray-700 mb-1">Target Amount</label>
 					<input
+						id="goal-targetAmount"
 						name="targetAmount"
 						required
 						type="number"
@@ -67,12 +72,25 @@
 					/>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Deadline (optional)</label>
+					<label for="goal-deadline" class="block text-sm font-medium text-gray-700 mb-1">Deadline (optional)</label>
 					<input
+						id="goal-deadline"
 						name="deadline"
 						type="date"
 						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
 					/>
+				</div>
+				<div>
+					<label for="goal-currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+					<select
+						id="goal-currency"
+						name="currency"
+						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+					>
+						{#each ['USD', 'EUR', 'RON'] as c}
+							<option value={c}>{c}</option>
+						{/each}
+					</select>
 				</div>
 				<div class="sm:col-span-3">
 					<button
@@ -110,7 +128,7 @@
 						<div class="flex justify-between text-sm mb-1">
 							<span class="text-gray-500">Progress</span>
 							<span class="font-medium text-gray-900">
-								{formatMoney(goal.currentAmount)} / {formatMoney(goal.targetAmount)}
+								{formatMoney(goal.currentAmount, goal.currency)} / {formatMoney(goal.targetAmount, goal.currency)}
 							</span>
 						</div>
 						<div class="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -133,7 +151,11 @@
 							<input type="hidden" name="id" value={goal.id} />
 							<button
 								type="submit"
-								onclick={(e) => { if (!confirm('Delete this goal?')) e.preventDefault(); }}
+								onclick={(e) => {
+									e.preventDefault();
+									pendingDeleteForm = e.currentTarget.closest('form');
+									confirmOpen = true;
+								}}
 								class="rounded-lg border border-red-200 text-red-600 text-sm px-3 py-1.5 hover:bg-red-50 transition-colors"
 							>
 								Delete
@@ -145,3 +167,17 @@
 		</div>
 	{/if}
 </div>
+
+<ConfirmDialog
+	open={confirmOpen}
+	title="Delete goal?"
+	message="This will permanently delete the goal and cannot be undone."
+	onconfirm={() => {
+		pendingDeleteForm?.requestSubmit();
+		confirmOpen = false;
+	}}
+	oncancel={() => {
+		confirmOpen = false;
+		pendingDeleteForm = null;
+	}}
+/>

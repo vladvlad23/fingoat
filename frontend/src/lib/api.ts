@@ -5,6 +5,7 @@ export interface User {
 	email: string;
 	monthlyIncome: string;
 	paymentDay?: number;
+	currency: string;
 	createdAt: string;
 }
 
@@ -16,6 +17,7 @@ export interface Goal {
 	currentAmount: string;
 	deadline?: string;
 	status: string;
+	currency: string;
 	createdAt: string;
 }
 
@@ -28,6 +30,7 @@ export interface Transaction {
 	type: string;
 	category?: string;
 	date: string;
+	currency: string;
 	createdAt: string;
 }
 
@@ -78,8 +81,8 @@ export const api = {
 			request<User>(fetch, 'GET', '/api/me', token),
 		updateIncome: (fetch: typeof globalThis.fetch, token: string, monthlyIncome: string) =>
 			request<User>(fetch, 'PATCH', '/api/me', token, { monthlyIncome }),
-		updateSettings: (fetch: typeof globalThis.fetch, token: string, monthlyIncome: string, paymentDay?: number) =>
-			request<User>(fetch, 'PATCH', '/api/me', token, { monthlyIncome, paymentDay })
+		updateSettings: (fetch: typeof globalThis.fetch, token: string, monthlyIncome: string, paymentDay?: number, currency?: string) =>
+			request<User>(fetch, 'PATCH', '/api/me', token, { monthlyIncome, paymentDay, currency })
 	},
 	goals: {
 		list: (fetch: typeof globalThis.fetch, token: string) =>
@@ -89,13 +92,13 @@ export const api = {
 		create: (
 			fetch: typeof globalThis.fetch,
 			token: string,
-			data: { title: string; targetAmount: string; deadline?: string }
+			data: { title: string; targetAmount: string; deadline?: string; currency?: string }
 		) => request<Goal>(fetch, 'POST', '/api/goals', token, data),
 		update: (
 			fetch: typeof globalThis.fetch,
 			token: string,
 			id: number,
-			data: Partial<{ title: string; targetAmount: string; deadline: string; status: string }>
+			data: Partial<{ title: string; targetAmount: string; deadline: string; status: string; currency: string }>
 		) => request<Goal>(fetch, 'PUT', `/api/goals/${id}`, token, data),
 		delete: (fetch: typeof globalThis.fetch, token: string, id: number) =>
 			request<void>(fetch, 'DELETE', `/api/goals/${id}`, token)
@@ -128,6 +131,7 @@ export const api = {
 				date: string;
 				goalId?: number;
 				category?: string;
+				currency?: string;
 			}
 		) => request<Transaction>(fetch, 'POST', '/api/transactions', token, data),
 		update: (
@@ -141,6 +145,7 @@ export const api = {
 				date: string;
 				goalId: number;
 				category: string;
+				currency: string;
 			}>
 		) => request<Transaction>(fetch, 'PUT', `/api/transactions/${id}`, token, data),
 		delete: (fetch: typeof globalThis.fetch, token: string, id: number) =>
@@ -148,10 +153,10 @@ export const api = {
 	}
 };
 
-export function formatMoney(s: string): string {
+export function formatMoney(s: string, currency: string = 'USD'): string {
 	const n = parseFloat(s);
 	if (isNaN(n)) return s;
-	return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+	return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
 }
 
 export function formatDate(s: string): string {
