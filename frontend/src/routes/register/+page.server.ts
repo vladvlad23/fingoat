@@ -19,7 +19,9 @@ export const actions: Actions = {
 			const { token } = await api.auth.register(fetch, email, password);
 			cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 });
 		} catch (e) {
-			return fail(409, { error: (e as Error).message });
+			const message = (e as Error).message;
+			const status = message === 'registration is disabled' ? 403 : 409;
+			return fail(status, { error: message });
 		}
 
 		redirect(302, '/');

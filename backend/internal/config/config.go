@@ -13,6 +13,7 @@ type Config struct {
 	JWTSecret        string
 	Port             string
 	RefreshTokenTTL  time.Duration
+	DisableRegister  bool
 }
 
 func Load() (*Config, error) {
@@ -31,6 +32,7 @@ func Load() (*Config, error) {
 	if cfg.Port == "" {
 		cfg.Port = "8080"
 	}
+	cfg.DisableRegister = os.Getenv("DISABLE_REGISTER") == "true"
 	if raw := os.Getenv("REFRESH_TOKEN_TTL"); raw != "" {
 		d, err := time.ParseDuration(raw)
 		if err != nil {

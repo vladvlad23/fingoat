@@ -72,6 +72,10 @@ func (h *AuthHandler) issueRefreshCookie(w http.ResponseWriter, r *http.Request,
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	if h.config.DisableRegister {
+		writeError(w, http.StatusForbidden, "registration is disabled")
+		return
+	}
 	var req registerRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")

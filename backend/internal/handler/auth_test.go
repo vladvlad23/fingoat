@@ -197,6 +197,24 @@ func TestAuthHandler_Register_DuplicateEmail(t *testing.T) {
 	}
 }
 
+func TestAuthHandler_Register_Disabled(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig()
+	cfg.DisableRegister = true
+	h := NewAuthHandler(&mockStore{}, cfg)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register",
+		strings.NewReader(`{"email":"a@b.com","password":"secret"}`))
+	rr := httptest.NewRecorder()
+
+	h.Register(rr, req)
+
+	if rr.Code != http.StatusForbidden {
+		t.Errorf("status = %d, want %d", rr.Code, http.StatusForbidden)
+	}
+}
+
 // ---- Login ----
 
 func TestAuthHandler_Login_Success(t *testing.T) {
