@@ -153,6 +153,30 @@ export const api = {
 	}
 };
 
+/** Extract a named cookie's value from a raw Set-Cookie header string. */
+export function extractCookieValue(header: string, name: string): string | null {
+	const prefix = `${name}=`;
+	const start = header.indexOf(prefix);
+	if (start === -1) return null;
+	const valueStart = start + prefix.length;
+	const end = header.indexOf(';', valueStart);
+	return end === -1 ? header.slice(valueStart) : header.slice(valueStart, end);
+}
+
+/** Returns the number of seconds until the JWT expires, or 0 if expired/invalid. */
+export function tokenSecondsRemaining(token: string): number {
+	try {
+		const parts = token.split('.');
+		if (parts.length !== 3) return 0;
+		const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))) as Record<string, unknown>;
+		const exp = payload['exp'];
+		if (typeof exp !== 'number') return 0;
+		return Math.max(0, Math.floor(exp - Date.now() / 1000));
+	} catch {
+		return 0;
+	}
+}
+
 export function formatMoney(s: string, currency: string = 'USD'): string {
 	const n = parseFloat(s);
 	if (isNaN(n)) return s;

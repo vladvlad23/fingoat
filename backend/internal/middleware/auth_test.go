@@ -17,7 +17,7 @@ func TestAuth_ValidToken(t *testing.T) {
 	t.Parallel()
 
 	userID := int64(42)
-	token, err := auth.GenerateToken(userID, testSecret)
+	token, err := auth.GenerateToken(userID, testSecret, time.Hour)
 	if err != nil {
 		t.Fatalf("GenerateToken() error: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestAuth_MissingAuthorizationHeader(t *testing.T) {
 func TestAuth_MissingBearerPrefix(t *testing.T) {
 	t.Parallel()
 
-	token, _ := auth.GenerateToken(1, testSecret)
+	token, _ := auth.GenerateToken(1, testSecret, time.Hour)
 
 	handler := Auth(testSecret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Error("handler should not be called")

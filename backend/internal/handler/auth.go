@@ -104,7 +104,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	token, err := auth.GenerateToken(user.ID, h.config.JWTSecret)
+	token, err := auth.GenerateToken(user.ID, h.config.JWTSecret, h.config.JWTTTL)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return
@@ -132,7 +132,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}
-	token, err := auth.GenerateToken(user.ID, h.config.JWTSecret)
+	token, err := auth.GenerateToken(user.ID, h.config.JWTSecret, h.config.JWTTTL)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return
@@ -174,7 +174,7 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := auth.GenerateToken(user.ID, h.config.JWTSecret)
+	accessToken, err := auth.GenerateToken(user.ID, h.config.JWTSecret, h.config.JWTTTL)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return

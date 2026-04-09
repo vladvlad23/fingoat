@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	DatabaseURL      string
-	JWTSecret        string
-	Port             string
-	RefreshTokenTTL  time.Duration
-	DisableRegister  bool
+	DatabaseURL     string
+	JWTSecret       string
+	Port            string
+	JWTTTL          time.Duration
+	RefreshTokenTTL time.Duration
+	DisableRegister bool
 }
 
 func Load() (*Config, error) {
@@ -33,6 +34,15 @@ func Load() (*Config, error) {
 		cfg.Port = "8080"
 	}
 	cfg.DisableRegister = os.Getenv("DISABLE_REGISTER") == "true"
+	if raw := os.Getenv("JWT_TTL"); raw != "" {
+		d, err := time.ParseDuration(raw)
+		if err != nil {
+			return nil, fmt.Errorf("JWT_TTL: %w", err)
+		}
+		cfg.JWTTTL = d
+	} else {
+		cfg.JWTTTL = 15 * time.Minute
+	}
 	if raw := os.Getenv("REFRESH_TOKEN_TTL"); raw != "" {
 		d, err := time.ParseDuration(raw)
 		if err != nil {

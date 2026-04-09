@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { api } from '$lib/api';
+import { extractCookieValue, tokenSecondsRemaining, type ApiError } from '$lib/api';
+import { env } from '$env/dynamic/public';
 
 export const load: PageServerLoad = ({ locals }) => {
 	if (locals.user) redirect(302, '/');
@@ -14,11 +15,24 @@ export const actions: Actions = {
 
 		if (!email || !password) return fail(400, { error: 'Email and password are required' });
 
-		try {
-			const { token } = await api.auth.login(fetch, email, password);
-			cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 });
-		} catch (e) {
-			return fail(401, { error: (e as Error).message });
+		const res = await fetch(`${env.PUBLIC_API_URL}/api/auth/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email, password })
+		});
+
+		const data = await res.json();
+		if (!res.ok) return fail(res.status === 401 ? 401 : 400, { error: (data as ApiError).error ?? 'Login failed' });
+
+		const { token } = data as { token: string };
+		cookies.set('token', token, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: tokenSecondsRemaining(token) });
+
+		const setCookie = res.headers.get('set-cookie');
+		if (setCookie) {
+			const refreshToken = extractCookieValue(setCookie, 'refresh_token');
+			if (refreshToken) {
+				cookies.set('refresh_token', refreshToken, { path: '/api/auth', httpOnly: true, sameSite: 'lax', maxAge: 30 * 24 * 60 * 60 });
+			}
 		}
 
 		redirect(302, '/');

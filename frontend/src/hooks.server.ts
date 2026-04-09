@@ -1,6 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
-import { api } from '$lib/api';
+import { api, extractCookieValue, tokenSecondsRemaining } from '$lib/api';
 
 /** Decode the payload of a JWT without verifying the signature. */
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
@@ -64,15 +64,6 @@ async function tryRefresh(
 	return data.token ?? null;
 }
 
-/** Extract a named cookie's value from a raw Set-Cookie header string. */
-function extractCookieValue(header: string, name: string): string | null {
-	const prefix = `${name}=`;
-	const start = header.indexOf(prefix);
-	if (start === -1) return null;
-	const valueStart = start + prefix.length;
-	const end = header.indexOf(';', valueStart);
-	return end === -1 ? header.slice(valueStart) : header.slice(valueStart, end);
-}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.token = null;
@@ -89,7 +80,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 					path: '/',
 					httpOnly: true,
 					sameSite: 'lax',
-					maxAge: 15 * 60
+					maxAge: tokenSecondsRemaining(newToken)
 				});
 				token = newToken;
 			} else {

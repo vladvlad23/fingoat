@@ -13,7 +13,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 	secret := "test-secret-key"
 	userID := int64(42)
 
-	token, err := GenerateToken(userID, secret)
+	token, err := GenerateToken(userID, secret, time.Hour)
 	if err != nil {
 		t.Fatalf("GenerateToken() error: %v", err)
 	}
@@ -33,7 +33,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 func TestValidateToken_WrongSecret(t *testing.T) {
 	t.Parallel()
 
-	token, err := GenerateToken(1, "correct-secret")
+	token, err := GenerateToken(1, "correct-secret", time.Hour)
 	if err != nil {
 		t.Fatalf("GenerateToken() error: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestGenerateToken_DifferentUserIDs(t *testing.T) {
 	for _, userID := range []int64{0, 1, -1, 999999} {
 		t.Run("", func(t *testing.T) {
 			t.Parallel()
-			token, err := GenerateToken(userID, secret)
+			token, err := GenerateToken(userID, secret, time.Hour)
 			if err != nil {
 				t.Fatalf("GenerateToken(%d) error: %v", userID, err)
 			}
